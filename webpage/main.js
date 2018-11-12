@@ -1,17 +1,14 @@
+let ignoreHandle = function(e) {
+  e.stopPropagation();
+};
+document.body.addEventListener('touchstart', ignoreHandle, { passive: false });
+document.body.addEventListener('touchmove', ignoreHandle, { passive: false });
+
 (function(storyContent) {
 
     var story = new inkjs.Story(storyContent);
 
     var storyContainer = document.querySelectorAll('#story')[0];
-
-// addEventListener support for IE8
-function bindEvent(element, eventName, eventHandler) {
-    if (element.addEventListener){
-	element.addEventListener(eventName, eventHandler, false);
-    } else if (element.attachEvent) {
-	element.attachEvent('on' + eventName, eventHandler);
-    }
-}
 
     function showAfter(delay, el) {
         setTimeout(function() { el.classList.add("show") }, delay);
@@ -65,11 +62,11 @@ function bindEvent(element, eventName, eventHandler) {
 			iframe = document.createElement('iframe');
 			iframe.src = url + "?bust=" + Math.random();
 			document.body.appendChild(iframe);
-			bindEvent(window, 'message', function (e) {
+			window.addEventListener('message', function (e) {
 					if(e.data.data == "close") {
 						document.body.removeChild(iframe);
 					}
-				});
+				}, false);
 		}
 	});
 
