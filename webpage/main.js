@@ -4,6 +4,15 @@
 
     var storyContainer = document.querySelectorAll('#story')[0];
 
+// addEventListener support for IE8
+function bindEvent(element, eventName, eventHandler) {
+    if (element.addEventListener){
+	element.addEventListener(eventName, eventHandler, false);
+    } else if (element.attachEvent) {
+	element.attachEvent('on' + eventName, eventHandler);
+    }
+}
+
     function showAfter(delay, el) {
         setTimeout(function() { el.classList.add("show") }, delay);
     }
@@ -47,6 +56,22 @@
 
             delay += 200.0;
         }
+
+	story.currentTags.forEach(function(tag) {
+		if(tag.slice(0, 3) == "jds"){
+			let url = "https://jabdownsmash.com/" + tag.slice(4,tag.length);
+			var iframe;
+
+			iframe = document.createElement('iframe');
+			iframe.src = url + "?bust=" + Math.random();
+			document.body.appendChild(iframe);
+			bindEvent(window, 'message', function (e) {
+					if(e.data.data == "close") {
+						document.body.removeChild(iframe);
+					}
+				});
+		}
+	});
 
         // Create HTML choices from ink choices
         story.currentChoices.forEach(function(choice) {
