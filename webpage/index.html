@@ -17,8 +17,24 @@
         <h1>hybrid</h1>
     </div>
 
-    <script src="ink.js"></script>
-    <script src="story.js"></script>
-    <script src="main.js"></script>
+<script>
+function loadJs(filename) {
+  let script=document.createElement('script')
+  script.setAttribute("type","text/javascript")
+  script.setAttribute("src", filename + "?bust=" + Math.random())
+  document.getElementsByTagName("body")[0].appendChild(script)
+  return script;
+}
+
+function loadJsFilesSequentially(filenames) {
+  if(filenames.length > 0) {
+    let script=loadJs(filenames[0]);
+    script.onload = function () {
+      loadJsFilesSequentially(filenames.slice(1,filenames.length));
+    }
+  };
+}
+loadJsFilesSequentially(["ink.js", "story.js", "main.js"]);
+</script>
 </body>
 </html>
