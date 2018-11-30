@@ -225,16 +225,16 @@ VAR soma = 3
 VAR name = 0
 ===firstDraft
 -A swirl of black dust surrounds you, thick enough to lose sense of your surroundings. It clears, and... You wake up to your phone ringing. The caller ID reads "Macy." 
-*Answer. 
++Answer. 
 --"Hello?" you ask, unintentionally sounding tired. 
 --"Good morning, sleepyhead," Macy teases. "It's nearly 4 o clock!" 
-**Groan.
+++Groan.
 --- ->call2
-**Tell the truth. 
+++Tell the truth. 
 ---"I had a long night," you confess. 
 ---"Hangovers!" Macy laughs. You're sure she's gone crazy.
 ---->call2
-**Fight back. 
+++Fight back. 
 ---"It's the future now, Macy, phone calls are a Bush administration tactic," you say. "We moved on from this for a reason." 
 ---"Oh, sorry I didn't reach out on DorkTube or NerdsApp like a true Immortal!" 
 ---"Come on, Immortals are in grade school right now. I'm more Gen Z than you are," you respond. You silently wish you had come up with a better comeback.
@@ -245,7 +245,7 @@ VAR name = 0
 ---"Trust me," Macy says, calmly. "It's worth it. I hope I see you soon." 
 ---Macy hangs up. You admit to yourself that you're a little curious what's going on. Macy never asks for favors, but here she is, pleading with you to meet with her. The only way to get there is by car, and you have been wheels-free ever since you moved into New Los Angeles. Luckily for you, a friend of yours owns a Flit store on the south side.
 --- -> home.your_room
-*Ignore it. 
++Ignore it. 
 - -> home.your_room
 
 
@@ -270,13 +270,13 @@ VAR name = 0
 "Hello, welcome to the bank," the teller says, in a deadpan tone. You're unsure if you misheard. 
 
 "Can I get your name so I can look up your account?" 
- * Frank.
+ + Frank.
  -- ~name="Frank"
  -- “Wow, that rhymes with bank!” the teller exclaims. -> account
- * Sarah. 
+ + Sarah. 
  -- ~name="Sarah"
  -- “Alright, just give me a second to look through the system,” the teller responds. -> account
- * Sauce.
+ + Sauce.
  -- ~name="Sauce"
  -- "Sauce?" The teller shoots you a confused look. You nod and stare expectantly back at the teller. The teller quickly regains composure.
  -- ~mood--
@@ -313,12 +313,12 @@ VAR name = 0
 
 === car_store
 - You're in the car store. { not bank.withdraw_money: You can't afford anything. }
-* { bank.withdraw_money } [Buy a hybrid car.]
++ { bank.withdraw_money } [Buy a hybrid car.]
 -- "You are paying in cash?" The teller asks.
-** Yes.
+++ Yes.
 --- "Okay," the teller responds.
   You buy a hybrid car. -> postFirstDraft
-** No.
+++ No.
    "Okay," the teller responds.
 -> car_store
 + [Go home.] -> home
