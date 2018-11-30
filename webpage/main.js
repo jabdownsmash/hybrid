@@ -59,7 +59,7 @@ document.body.addEventListener('touchmove', ignoreHandle, { passive: false });
           let url = "" + tag.slice(4,tag.length);
           let iframe = document.createElement('iframe');
           iframes[tag.slice(3, tag.length)] = iframe;
-          iframe.src = url + "?bust=" + Math.random();
+          iframe.src = url + "/index.html?bust=" + Math.random();
           if(tag.slice(3,4) == "b") {
             iframe.style = "z-index: -1;"
           }
