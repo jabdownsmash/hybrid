@@ -1,0 +1,225 @@
+<meta name="viewport" content="width=device-width, user-scalable=no">
+<style>
+body {
+  margin: 0;
+  overflow: hidden;
+  background-color: transparent;
+}
+canvas#full {
+  background-color: transparent;
+}
+</style>
+<canvas id="full"></canvas>
+
+<script>
+// reference to canvas
+let can = document.getElementById("full");
+
+function resizeCanvas() {
+  //can.style.width = window.innerWidth + "px";
+  can.width = window.innerWidth;
+  // artifical delay so innerHeight is correct
+  setTimeout(function() {
+    //can.style.height = window.innerHeight + "px";
+    can.height = window.innerHeight;
+  }, 0);
+};
+
+// Webkit/Blink will fire this on load, but Gecko doesn't.
+window.onresize = resizeCanvas;
+
+// So we fire it manually...
+resizeCanvas();
+
+
+let updaters= [];
+let toRemove= [];
+
+function oscillate(offset=0, speed=1){
+  return Math.sin(Date.now()/1000 * speed * Math.PI*2 + offset * speed * Math.PI*2)/2 + .5;
+}
+
+(function(){
+  let canvas = document.getElementById('full');
+  let context = canvas.getContext('2d');
+  context.fillStyle = 'rgba(0,0,0,0)';
+  context.fill();
+
+  let fadeOut = false;
+
+
+  let trails = false;
+  let gradient = context.createLinearGradient(0,0,context.canvas.width,40);
+  gradient.addColorStop("0","magenta");
+  gradient.addColorStop("1.0","red");
+  let currentColor = gradient;
+  let float = false;
+  let floatStrength = 6;
+  let gravityStrength = 3;
+
+  window.addEventListener('message', function (e) {
+      if (e.data == "close") fadeOut = true;
+      if (e.data == "trails") trails = !trails;
+      if (e.data == "float") float = !float;
+      if (e.data == "gravity") gravityStrength = 3 - gravityStrength;
+      if (e.data == "knock") {
+        let angle = Math.random() * Math.PI * 2;
+        let strength = globalRadius * 4 + Math.random() * globalRadius * 4;
+        currentVelocity = {
+          x: Math.cos(angle) * strength,
+          y: Math.sin(angle) * strength,
+        }
+      }
+    }, false);
+
+
+  let globalRadius = Math.min(canvas.width, canvas.height)/8;
+  updaters.push(function() {
+    globalRadius = Math.min(canvas.width, canvas.height)/8;
+  });
+  let currentDraw = {x: can.width/2, y: can.height/2};
+  let currentVelocity = { x: 0, y: 0 };
+
+  updaters.push(function(dt,t,i) {
+    currentVelocity.x += Math.random() - .5;
+    currentVelocity.y += Math.random() - .5;
+  })
+
+  updaters.push(function(dt, t, i) {
+    if (float) {
+      currentVelocity.x += (can.width/2 - currentDraw.x) * dt * floatStrength;
+      currentVelocity.y += (can.height/2 - currentDraw.y) * dt * floatStrength;
+    }
+
+    currentVelocity.y += dt * globalRadius * gravityStrength;
+
+    currentDraw.x += currentVelocity.x * dt;
+    currentDraw.y += currentVelocity.y * dt;
+
+    if(currentDraw.y + globalRadius > can.height) {
+      currentDraw.y = can.height - globalRadius;
+      currentVelocity.y = 0;
+    }
+    if(currentDraw.x + globalRadius > can.width) {
+      currentDraw.x = can.width - globalRadius;
+      currentVelocity.x = 0;
+    }
+    if(currentDraw.y - globalRadius < 0) {
+      currentDraw.y = globalRadius;
+      currentVelocity.y = 0;
+    }
+    if(currentDraw.x - globalRadius < 0) {
+      currentDraw.x = globalRadius;
+      currentVelocity.x = 0;
+    }
+  });
+
+  let spawnCounter = 0;
+  let spawnRate = 3000;
+  let lifetime = 4;
+
+  updaters.push(function(dt, t, i) {
+    if (Math.abs(currentVelocity.x) < globalRadius/5 ) {
+      spawnRate = 1000;
+    } else if (Math.abs(currentVelocity.x) < globalRadius*2 ) {
+      spawnRate = 0.3;
+    } else if (Math.abs(currentVelocity.x) < globalRadius*3 ) {
+      spawnRate = 0.03;
+    }
+    while(spawnCounter + spawnRate < t) {
+      spawnCounter += spawnRate;
+      let lifetimeCounter = 0;
+      let position = {
+        x: currentDraw.x,
+        y: currentDraw.y
+      };
+      let velocity = {
+        x: 0,
+        y: 0
+      }
+      updaters.push(function(dt2, t2, i2) {
+        lifetimeCounter += dt2;
+        if (lifetimeCounter > lifetime) {
+          toRemove.push(i2);
+        }
+
+        if (float) {
+          velocity.x += (can.width/2 - position.x) * dt * floatStrength;
+          velocity.y += (can.height/2 - position.y) * dt * floatStrength;
+        }
+
+        velocity.y += dt * globalRadius * gravityStrength;
+
+        position.x += velocity.x * dt;
+        position.y += velocity.y * dt;
+
+        if (!fadeOut) {
+          context.save();
+          context.globalAlpha = 1;
+          context.beginPath();
+          context.fillStyle=gradient;
+
+          context.arc(position.x,position.y,
+              globalRadius/4, 0, 2 * Math.PI, false);
+          context.fill();
+          context.restore();
+        }
+      })
+    }
+  })
+
+  // render the scene
+  updaters.push(function(){
+    //context.globalAlpha = oscillate(.4, 1/(1 + oscillate()*20)) * .3;
+    if(trails)context.globalAlpha = oscillate(oscillate(), .2) * .5;
+    else context.globalAlpha = 1;
+    if (fadeOut) context.globalCompositeOperation = "destination-out";
+    context.fillStyle = "#121417";
+    context.fillRect(0,0,canvas.width,canvas.height);
+    context.globalCompositeOperation = "source-over";
+
+    if (!fadeOut) {
+      context.save();
+      context.globalAlpha = 1;
+      context.beginPath();
+      context.fillStyle=gradient;
+
+      context.arc(currentDraw.x,currentDraw.y,
+          globalRadius, 0, 2 * Math.PI, false);
+      context.fill();
+      context.restore();
+    }
+  });
+})();
+
+// run the rendering loop
+let lastTimeMsec= null
+requestAnimationFrame(function animate(nowMsec){
+  // keep looping
+  requestAnimationFrame( animate );
+  // measure time
+  lastTimeMsec    = lastTimeMsec || nowMsec-1000/60
+  let deltaMsec   = Math.min(200, nowMsec - lastTimeMsec)
+  lastTimeMsec    = nowMsec
+  // call each update function
+  //let timeScale = 1;
+  //for(let i = 0; i < timeScales.length; i++)
+  //{
+  //  timeScale *= timeScales[i];
+  //}
+  for(let i = 0; i < updaters.length; i++)
+  {
+    updaters[i](deltaMsec/1000, nowMsec/1000, i)
+  }
+  for(let i = toRemove.length - 1; i >= 0; i--)
+  {
+    updaters.splice(toRemove[i],1);
+  }
+  toRemove = [];
+})
+
+</script>
+
+<script>
+</script>
+
