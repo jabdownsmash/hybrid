@@ -9,6 +9,7 @@ document.body.addEventListener('touchmove', ignoreHandle, { passive: false });
   let story = new inkjs.Story(storyContent);
 
   let storyContainer = document.querySelectorAll('#story')[0];
+  let iframes = {};
 
   function showAfter(delay, el) {
     setTimeout(function() { el.classList.add("show") }, delay);
@@ -52,21 +53,34 @@ document.body.addEventListener('touchmove', ignoreHandle, { passive: false });
       showAfter(delay, paragraphElement);
 
       delay += 200.0;
-    }
 
-    story.currentTags.forEach(function(tag) {
-      if(tag.slice(0, 3) == "jds"){
-        let url = "https://jabdownsmash.com/" + tag.slice(4,tag.length);
-        let iframe = document.createElement('iframe');
-        iframe.src = url + "?bust=" + Math.random();
-        document.body.appendChild(iframe);
-        window.addEventListener('message', function (e) {
-            if(e.data.data == "close") {
-              document.body.removeChild(iframe);
-            }
-          }, false);
-      }
-    });
+      story.currentTags.forEach(function(tag) {
+        if(tag.slice(0, 3) == "web"){
+          let url = "" + tag.slice(4,tag.length);
+          let iframe = document.createElement('iframe');
+          iframes[tag.slice(3, tag.length)] = iframe;
+          iframe.src = url + "?bust=" + Math.random();
+          if(tag.slice(3,4) == "b") {
+            iframe.style = "z-index: -1;"
+          }
+          document.body.appendChild(iframe);
+          window.addEventListener('message', function (e) {
+              if(e.data.data == "close") {
+                document.body.removeChild(iframe);
+              }
+            }, false);
+        } else if(tag.slice(0, 3) == "cmd") {
+          let name = tag.slice(3,tag.length);
+          let cmdStart = name.search("-");
+          if (cmdStart >= 0) {
+            let iframe = iframes[name.slice(0,cmdStart)];
+            if (iframe != null)
+              iframe.contentWindow.postMessage(
+                name.slice(cmdStart+1, name.length), "*");
+          }
+        }
+      });
+    }
 
     // Create HTML choices from ink choices
     story.currentChoices.forEach(function(choice) {
